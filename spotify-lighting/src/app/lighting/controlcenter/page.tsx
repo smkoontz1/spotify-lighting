@@ -1,22 +1,19 @@
 'use client'
 
 import { Col, Container, Row, Card, CardBody, CardTitle, Form } from 'react-bootstrap' 
-import { useLight } from '../_lib/hooks/useLight'
+import { useLightPut } from '../_lib/hooks/useLightPut'
 import { ChangeEvent, useEffect, useState } from 'react'
 import { useLights } from '../_lib/hooks/useLights'
-
+import { LightResponse } from '@/app/types/responses/external/hue/light'
 
 export default function ControlCenter() {
   const { data } = useLights()
-  const { mutate } = useLight()
-
-  const [lightMap, setLightMap] = useState<Map<string, boolean>>(new Map<string, boolean>())
+  const { mutate } = useLightPut()
+  const [lights, setLights] = useState<LightResponse[]>([])
 
   useEffect(() => {
     if (data) {
-      data.forEach(l => {
-        setLightMap(lightMap.set(l.hueId, false))
-      })
+      setLights(data)
     }
   }, [data])
 
@@ -25,12 +22,21 @@ export default function ControlCenter() {
     const hueId = id.split('/')[1]
     const checked = (event.target as any).checked as boolean
 
-    setLightMap(lightMap.set(hueId, checked))
-    
-    mutate({ id: hueId, on: checked })
+    let light = lights?.find(l => l.id === hueId) || {} as LightResponse
+    light.on = { on: checked }
+
+    mutate({ hueId, on: checked })
   }
 
-  const LightCard = ({ name, hueId }: { name: string, hueId: string }) => {
+  const LightCard = ({
+    name,
+    hueId,
+    on
+    }: {
+      name: string,
+      hueId: string,
+      on: boolean
+    }) => {
     return (
       <Card style={{ width: '18rem' }} key={`light-${hueId}`}>
         <CardBody>
@@ -40,7 +46,7 @@ export default function ControlCenter() {
               type='switch'
               id={`switch/${hueId}`}
               label='Off/On'
-              checked={lightMap.get(hueId) || false}
+              checked={on}
               onChange={handleSwitchChange}
             />
           </Form>
@@ -52,29 +58,30 @@ export default function ControlCenter() {
   const LightRows = () => {
     let rowElements: JSX.Element[] = []
     
-    if (data) {
-      const rowCount = data.length / 2
-      const remainingLights = data.length % 2
+    if (lights) {
+      const rowCount = lights.length / 2
+      const remainingLights = lights.length % 2
   
       let leftColumnIndex = 0
   
-  
       for (let row = 1; row <= rowCount; row++) {
-        const leftLight = data[leftColumnIndex]
-        const rightLight = data[leftColumnIndex + 1]
+        const leftLight = lights[leftColumnIndex]
+        const rightLight = lights[leftColumnIndex + 1]
   
         const rowElement =
           <Row key={`row-${row}`}>
             <Col>
               <LightCard
-                name={leftLight.name}
-                hueId={leftLight.hueId}
+                hueId={leftLight.id}
+                name={leftLight.metadata.name}
+                on={leftLight.on.on}
               />
             </Col>
             <Col>
               <LightCard
-                name={rightLight.name}
-                hueId={rightLight.hueId}
+                hueId={rightLight.id}
+                name={rightLight.metadata.name}
+                on={rightLight.on.on}
               />
             </Col>
           </Row>
@@ -84,15 +91,15 @@ export default function ControlCenter() {
       }
   
       if (remainingLights > 0) {
-        const lastLight = data[data.length - 1]
+        const lastLight = lights[lights.length - 1]
   
         const lastRowElement =
           <Row key={'last-row'}>
             <Col>
               <LightCard
-                key={`light-${lastLight.hueId}`}
-                name={lastLight.name}
-                hueId={lastLight.hueId}
+                hueId={lastLight.id}
+                name={lastLight.metadata.name}
+                on={lastLight.on.on}
               />
             </Col>
           </Row>
