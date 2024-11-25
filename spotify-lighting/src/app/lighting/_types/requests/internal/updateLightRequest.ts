@@ -1,4 +1,4 @@
-import { Color } from '../../appmodel/color'
+import { Color } from '../../models/color'
 
 export type UpdateLightRequest = {
   hueId: string

@@ -1,4 +1,3 @@
-
 export const rgbToHex = (r: number, g: number, b: number) => {
   let rHex = r.toString(16)
   let gHex = g.toString(16)
