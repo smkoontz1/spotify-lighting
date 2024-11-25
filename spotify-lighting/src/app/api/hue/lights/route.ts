@@ -1,6 +1,6 @@
-import { Device } from '@/app/types/responses/external/hue/device'
+import { Device } from '@/app/lighting/_types/responses/external/hue/device'
 import { hueApi } from '../api'
-import { LightResponse } from '@/app/types/responses/external/hue/light'
+import { LightResponse } from '@/app/lighting/_types/responses/external/hue/light'
 
 export async function GET(req: Request) {
   const response = await hueApi.get('clip/v2/resource/device')

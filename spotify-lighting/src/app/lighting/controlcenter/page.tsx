@@ -4,45 +4,16 @@ import { Col, Container, Row, Card, CardBody, CardTitle, Form } from 'react-boot
 import { useLightPut } from '../_lib/hooks/useLightPut'
 import { ChangeEvent, useEffect, useState } from 'react'
 import { useLights } from '../_lib/hooks/useLights'
-import { LightResponse } from '@/app/types/responses/external/hue/light'
+import { LightResponse } from '@/app/lighting/_types/responses/external/hue/light'
 // @ts-ignore
 import * as ColorConverter from 'cie-rgb-color-converter'
 
-const rgbToHex = (r: number, g: number, b: number) => {
-  let rHex = r.toString(16)
-  let gHex = g.toString(16)
-  let bHex = b.toString(16)
-
-  if (rHex.length === 1) {
-    rHex = '0' + rHex
-  }
-
-  if (gHex.length === 1) {
-    gHex = '0' + gHex
-  }
-
-  if (bHex.length === 1) {
-    bHex = '0' + bHex
-  }
-
-  return '#' + rHex + gHex + bHex
-}
-
-const hexToRgb = (hex: string) => {
-  let rHex = hex.slice(1, 3)
-  let gHex = hex.slice(3, 5)
-  let bHex = hex.slice(5, 7)
-
-  const r = parseInt(rHex, 16)
-  const g = parseInt(gHex, 16)
-  const b = parseInt(bHex, 16)
-
-  return { r, g, b }
-}
+import { hexToRgb } from '../_lib/utils/colorConversion'
+import { LightCard } from '../_components/LightCard'
 
 type LightControl = {
   light: LightResponse
-  selectedHex: string
+  setHex: string
 }
 
 export default function ControlCenter() {
@@ -52,7 +23,7 @@ export default function ControlCenter() {
 
   useEffect(() => {
     if (data) {
-      setLights(data.filter(d => d.id === '050e462c-18dd-463b-a4ca-ceebbc85df24').map(r => ({ light: r, selectedHex: '' } as LightControl)))
+      setLights(data.map(r => ({ light: r, setHex: '' } as LightControl)))
     }
   }, [data])
 
@@ -78,61 +49,12 @@ export default function ControlCenter() {
     const xRounded = Math.round(newXY.x * 1000) / 1000
     const yRounded = Math.round(newXY.y * 1000) / 1000
 
-    console.log('X Rounded', xRounded)
-    console.log('Y Rounded', yRounded)
-
     let lightControl = lights?.find(l => l.light.id === hueId) || {} as LightControl
-    lightControl.selectedHex = nexHex
+    lightControl.setHex = nexHex
     lightControl.light.color.xy.x = xRounded
     lightControl.light.color.xy.y = yRounded
 
     mutate({ hueId, on: lightControl.light.on.on, color: { x: xRounded, y: yRounded } })
-  }
-
-  const LightCard = ({
-    name,
-    hueId,
-    on,
-    color,
-    setHex
-    }: {
-      name: string,
-      hueId: string,
-      on: boolean
-      color: { x: number, y: number }
-      setHex?: string
-    }) => {
-
-    let hexValue = ''
-    if (setHex) {
-      hexValue = setHex
-    } else {
-      const rgb = ColorConverter.xyBriToRgb(color.x, color.y, 100.0)
-      hexValue = rgbToHex(rgb.r, rgb.g, rgb.b)
-    }
-
-    return (
-      <Card style={{ width: '18rem' }} key={`light-${hueId}`}>
-        <CardBody>
-          <CardTitle>{name}</CardTitle>
-          <Form>
-            <Form.Check
-              type='switch'
-              id={`switch/${hueId}`}
-              label='Off/On'
-              checked={on}
-              onChange={handleSwitchChange}
-            />
-          </Form>
-          <input
-            id={`colorpicker/${hueId}`}
-            type='color'
-            value={hexValue}
-            onChange={handleColorChange}
-          />
-        </CardBody>
-      </Card>
-    )
   }
 
   const LightRows = () => {
@@ -148,26 +70,20 @@ export default function ControlCenter() {
         const leftLight = lights[leftColumnIndex]
         const rightLight = lights[leftColumnIndex + 1]
   
-        console.log('Rendering lights', leftLight.light.color.xy.x, leftLight.light.color.xy.y)
-
         const rowElement =
           <Row key={`row-${row}`}>
             <Col>
               <LightCard
-                hueId={leftLight.light.id}
-                name={leftLight.light.metadata.name}
-                on={leftLight.light.on.on}
-                color={{ x: leftLight.light.color.xy.x, y: leftLight.light.color.xy.y }}
-                setHex={leftLight.selectedHex}
+                lightControl={leftLight}
+                onSwitchChange={handleSwitchChange}
+                onColorChange={handleColorChange}
               />
             </Col>
             <Col>
               <LightCard
-                hueId={rightLight.light.id}
-                name={rightLight.light.metadata.name}
-                on={rightLight.light.on.on}
-                color={{ x: rightLight.light.color.xy.x, y: rightLight.light.color.xy.y }}
-                setHex={rightLight.selectedHex}
+                lightControl={rightLight}
+                onSwitchChange={handleSwitchChange}
+                onColorChange={handleColorChange}
               />
             </Col>
           </Row>
@@ -183,11 +99,9 @@ export default function ControlCenter() {
           <Row key={'last-row'}>
             <Col>
               <LightCard
-                hueId={lastLight.light.id}
-                name={lastLight.light.metadata.name}
-                on={lastLight.light.on.on}
-                color={{ x: lastLight.light.color.xy.x, y: lastLight.light.color.xy.y }}
-                setHex={lastLight.selectedHex}
+                lightControl={lastLight}
+                onSwitchChange={handleSwitchChange}
+                onColorChange={handleColorChange}
               />
             </Col>
           </Row>

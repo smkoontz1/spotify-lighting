@@ -1,4 +1,4 @@
-import { LightResponse } from '@/app/types/responses/external/hue/light'
+import { LightResponse } from '@/app/lighting/_types/responses/external/hue/light'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 

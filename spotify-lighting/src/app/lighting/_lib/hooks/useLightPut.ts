@@ -1,4 +1,4 @@
-import { UpdateLightRequest } from '@/app/types/requests/internal/updateLightRequest'
+import { UpdateLightRequest } from '@/app/lighting/_types/requests/internal/updateLightRequest'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 

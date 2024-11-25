@@ -1,11 +1,9 @@
-import { UpdateLightRequest } from '@/app/types/requests/internal/updateLightRequest'
+import { UpdateLightRequest } from '@/app/lighting/_types/requests/internal/updateLightRequest'
 import { hueApi } from '../api'
 
 export async function PUT(req: Request) {
   const params = (await req.json()) as UpdateLightRequest
   
-  console.log(params)
-
   const response = await hueApi.put(
     `clip/v2/resource/light/${params.hueId}`,
     {
@@ -21,9 +19,13 @@ export async function PUT(req: Request) {
     }
   )
 
-  console.log(response.request)
-
-  return new Response('Success', {
-    status: 200
-  })
+  if (response.status === 200) {
+    return new Response('Success', {
+      status: 200
+    })
+  } else {
+    return new Response('Problem', {
+      status: response.status
+    })
+  }
 }
