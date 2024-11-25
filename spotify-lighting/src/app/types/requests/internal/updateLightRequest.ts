@@ -2,6 +2,6 @@ import { Color } from '../../appmodel/color'
 
 export type UpdateLightRequest = {
   hueId: string
-  on: boolean
+  on?: boolean
   color?: Color
 }

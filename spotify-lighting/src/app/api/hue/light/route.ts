@@ -4,18 +4,24 @@ import { hueApi } from '../api'
 export async function PUT(req: Request) {
   const params = (await req.json()) as UpdateLightRequest
   
-  await hueApi.put(
+  console.log(params)
+
+  const response = await hueApi.put(
     `clip/v2/resource/light/${params.hueId}`,
     {
       "on": {
         "on": params.on
       },
-      "xy": {
-        "x": params.color?.x,
-        "y": params.color?.y
+      "color": {
+        "xy": {
+          "x": params.color?.x,
+          "y": params.color?.y
+        }
       }
     }
   )
+
+  console.log(response.request)
 
   return new Response('Success', {
     status: 200

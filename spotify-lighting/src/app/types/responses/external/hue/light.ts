@@ -6,6 +6,7 @@ type Metadata = {
 type OnState = {
   on: boolean
 }
+
 type DimmingState = {
   brightness: number
   min_dim_level: number
